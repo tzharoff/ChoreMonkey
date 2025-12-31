@@ -1,19 +1,24 @@
 import { addDoc, collection } from "firebase/firestore";
-import { db } from "../firebase/firebase";
 import { useState } from "react";
+import { db } from "../firebase/firebase";
 
-export default function AddChore() {
+type AddChoreProps = {
+  householdId: string;
+};
+
+export default function AddChore({ householdId }: AddChoreProps) {
   const [title, setTitle] = useState("");
 
   async function submit() {
-    if (!title) return;
+    if (!title.trim()) return;
 
     await addDoc(collection(db, "chores"), {
       title,
+      householdId,
       createdAt: Date.now(),
-      completed: false,
+      urgency: "green",
     });
-
+    
     setTitle("");
   }
 

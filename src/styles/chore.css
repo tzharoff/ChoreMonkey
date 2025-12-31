@@ -1,0 +1,32 @@
+.chore-card {
+  padding: 12px;
+  border-radius: 8px;
+  user-select: none;
+  cursor: pointer;
+
+  transition:
+    background-color 200ms ease,
+    color 200ms ease,
+    transform 120ms ease;
+}
+
+/* Urgency states */
+.chore-green {
+  background-color: #3cb371; /* green */
+  color: #0f2f1f; /* dark green text */
+}
+
+.chore-yellow {
+  background-color: #f0c419; /* yellow */
+  color: #3a2a00; /* dark amber text */
+}
+
+.chore-red {
+  background-color: #e5533d; /* red */
+  color: #ffffff; /* white text for contrast */
+}
+
+/* Optional tactile feedback */
+.chore-card:active {
+  transform: scale(0.98);
+}

@@ -1,6 +1,9 @@
 import { initializeApp } from "firebase/app";
+import {
+  initializeFirestore,
+  enableIndexedDbPersistence,
+} from "firebase/firestore";
 import { getAuth } from "firebase/auth";
-import { getFirestore } from "firebase/firestore";
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -8,7 +11,11 @@ const firebaseConfig = {
   projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
 };
 
-const app = initializeApp(firebaseConfig);
-
+export const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
-export const db = getFirestore(app);
+
+export const db = initializeFirestore(app, {});
+
+enableIndexedDbPersistence(db).catch((err) => {
+  console.warn("Firestore persistence unavailable", err);
+});
