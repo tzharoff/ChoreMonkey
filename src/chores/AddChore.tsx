@@ -8,6 +8,7 @@ type AddChoreProps = {
 
 export default function AddChore({ householdId }: AddChoreProps) {
   const [title, setTitle] = useState("");
+  const now = Date.now();
 
   async function submit() {
     if (!title.trim()) return;
@@ -15,10 +16,11 @@ export default function AddChore({ householdId }: AddChoreProps) {
     await addDoc(collection(db, "chores"), {
       title,
       householdId,
-      createdAt: Date.now(),
       urgency: "green",
+      urgencyUpdatedAt: now,
+      createdAt: now,
     });
-    
+
     setTitle("");
   }
 

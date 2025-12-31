@@ -5,6 +5,10 @@ import { escalate, deescalate } from "../utils/urgency";
 import { useChoreGesture } from "../hooks/useChoreGesture";
 import type { Chore, Urgency } from "../shared/types";
 import "../styles/chore.css";
+import { computeAutoUrgency } from "../utils/autoUrgency";
+
+
+
 
 /* -------------------------
    Firestore helper
@@ -21,7 +25,10 @@ async function applyUrgencyChange(
     const next = fn(current);
 
     if (current !== next) {
-      tx.update(choreRef, { urgency: next });
+      tx.update(choreRef, {
+        urgency: next,
+        urgencyUpdatedAt: Date.now(),
+      });
     }
   });
 }
@@ -51,9 +58,14 @@ export default function ChoreCard({ chore }: { chore: Chore }) {
     }
   });
 
+  const effectiveUrgency = computeAutoUrgency(
+    chore.urgency,
+    chore.urgencyUpdatedAt
+  );
+
   return (
     <div
-      className={`chore-card chore-${chore.urgency} ${
+      className={`chore-card chore-${effectiveUrgency} ${
         isUpdating ? "chore-disabled" : ""
       }`}
       onPointerDown={onPointerDown}
