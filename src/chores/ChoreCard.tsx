@@ -1,12 +1,9 @@
-import { useRef } from "react";
-import { runTransaction, doc, DocumentReference } from "firebase/firestore";
+import { doc, runTransaction, DocumentReference } from "firebase/firestore";
 import { db } from "../firebase/firebase";
 import { escalate, deescalate } from "../utils/urgency";
-import type { Chore, Gesture, Urgency } from "../shared/types";
+import { useChoreGesture } from "../hooks/useChoreGesture";
+import type { Chore, Urgency } from "../shared/types";
 import "../styles/chore.css";
-
-const LONG_PRESS_MS = 700;
-const DOUBLE_TAP_MS = 250;
 
 /* -------------------------
    Firestore helper
@@ -26,46 +23,6 @@ async function applyUrgencyChange(
       tx.update(choreRef, { urgency: next });
     }
   });
-}
-
-/* -------------------------
-   Gesture hook
--------------------------- */
-function useChoreGesture(onGesture: (g: Gesture) => void) {
-  const pressTimer = useRef<number | null>(null);
-  const tapTimer = useRef<number | null>(null);
-  const longPressFired = useRef(false);
-
-  function onPointerDown() {
-    longPressFired.current = false;
-
-    pressTimer.current = window.setTimeout(() => {
-      longPressFired.current = true;
-      onGesture("long-press");
-    }, LONG_PRESS_MS);
-  }
-
-  function onPointerUp() {
-    if (pressTimer.current) {
-      clearTimeout(pressTimer.current);
-      pressTimer.current = null;
-    }
-
-    if (longPressFired.current) return;
-
-    if (tapTimer.current) {
-      clearTimeout(tapTimer.current);
-      tapTimer.current = null;
-      onGesture("double-tap");
-    } else {
-      tapTimer.current = window.setTimeout(() => {
-        tapTimer.current = null;
-        onGesture("none");
-      }, DOUBLE_TAP_MS);
-    }
-  }
-
-  return { onPointerDown, onPointerUp };
 }
 
 /* -------------------------
