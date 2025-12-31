@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { doc, runTransaction, DocumentReference } from "firebase/firestore";
 import { db } from "../firebase/firebase";
 import { escalate, deescalate } from "../utils/urgency";
@@ -30,24 +31,43 @@ async function applyUrgencyChange(
 -------------------------- */
 export default function ChoreCard({ chore }: { chore: Chore }) {
   const choreRef = doc(db, "chores", chore.id);
+  const [isUpdating, setIsUpdating] = useState(false);
 
-  const { onPointerDown, onPointerUp } = useChoreGesture((gesture) => {
-    if (gesture === "long-press") {
-      applyUrgencyChange(choreRef, escalate);
-    }
+  const { onPointerDown, onPointerUp } = useChoreGesture(async (gesture) => {
+    if (isUpdating) return; // ⛔ lock
 
-    if (gesture === "double-tap") {
-      applyUrgencyChange(choreRef, deescalate);
+    try {
+      setIsUpdating(true);
+
+      if (gesture === "long-press") {
+        await applyUrgencyChange(choreRef, escalate);
+      }
+
+      if (gesture === "double-tap") {
+        await applyUrgencyChange(choreRef, deescalate);
+      }
+    } finally {
+      setIsUpdating(false); // 🔓 always unlock
     }
   });
 
   return (
     <div
-      className={`chore-card chore-${chore.urgency}`}
+      className={`chore-card chore-${chore.urgency} ${
+        isUpdating ? "chore-disabled" : ""
+      }`}
       onPointerDown={onPointerDown}
       onPointerUp={onPointerUp}
+      aria-busy={isUpdating}
     >
       {chore.title}
+
+      {isUpdating && (
+        <span
+          className="chore-spinner"
+          aria-hidden="true"
+        />
+      )}
     </div>
   );
 }
