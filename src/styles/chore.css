@@ -30,3 +30,8 @@
 .chore-card:active {
   transform: scale(0.98);
 }
+
+.chore-disabled {
+  pointer-events: none; /* hard stop */
+  opacity: 0.7;
+}
