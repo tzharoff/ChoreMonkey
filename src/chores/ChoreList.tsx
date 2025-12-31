@@ -7,8 +7,6 @@ import ChoreCard from "./ChoreCard";
 import AddChore from "./AddChore";
 
 export default function ChoreList() {
-  console.log("📋 ChoreList rendered");
-
   const { householdId } = useHousehold();
   const [chores, setChores] = useState<Chore[]>([]);
 
