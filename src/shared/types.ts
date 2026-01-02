@@ -10,5 +10,8 @@ export type Chore = {
   urgency: Urgency;
   urgencyUpdatedAt: number;
 
+  lastNotifiedUrgency?: Urgency;
+
   createdAt: number;
 };
+

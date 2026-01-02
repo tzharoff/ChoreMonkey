@@ -1,13 +1,13 @@
-import { useState } from "react";
-import { doc, runTransaction, DocumentReference } from "firebase/firestore";
+import { useEffect, useState } from "react";
+import { doc, runTransaction, DocumentReference, updateDoc } from "firebase/firestore";
 import { db } from "../firebase/firebase";
 import { escalate, deescalate } from "../utils/urgency";
 import { useChoreGesture } from "../hooks/useChoreGesture";
 import type { Chore, Urgency } from "../shared/types";
 import "../styles/chore.css";
 import { computeAutoUrgency } from "../utils/autoUrgency";
-
-
+import { shouldNotifyRed } from "../utils/notifications";
+import { Toast } from "../components/Toast";
 
 
 /* -------------------------
@@ -37,8 +37,30 @@ async function applyUrgencyChange(
    Component
 -------------------------- */
 export default function ChoreCard({ chore }: { chore: Chore }) {
+  const effectiveUrgency = computeAutoUrgency(
+    chore.urgency,
+    chore.urgencyUpdatedAt
+  );
   const choreRef = doc(db, "chores", chore.id);
   const [isUpdating, setIsUpdating] = useState(false);
+  const [showToast, setShowToast] = useState(false);
+  
+  useEffect(() => {
+    if (
+      shouldNotifyRed(
+        chore.lastNotifiedUrgency,
+        effectiveUrgency
+      )
+    ) {
+      setShowToast(true);
+
+      // persist that we've notified
+      updateDoc(choreRef, {
+        lastNotifiedUrgency: "red",
+      });
+    }
+  }, [effectiveUrgency]);
+
 
   const { onPointerDown, onPointerUp } = useChoreGesture(async (gesture) => {
     if (isUpdating) return; // ⛔ lock
@@ -58,10 +80,7 @@ export default function ChoreCard({ chore }: { chore: Chore }) {
     }
   });
 
-  const effectiveUrgency = computeAutoUrgency(
-    chore.urgency,
-    chore.urgencyUpdatedAt
-  );
+
 
   return (
     <div
@@ -73,6 +92,13 @@ export default function ChoreCard({ chore }: { chore: Chore }) {
       aria-busy={isUpdating}
     >
       {chore.title}
+
+      {showToast && (
+        <Toast
+          message={`⚠️ "${chore.title}" just turned RED`}
+          onClose={() => setShowToast(false)}
+        />
+      )}
 
       {isUpdating && (
         <span
